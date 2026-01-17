@@ -13,7 +13,7 @@ function App() {
   })
 
 
-  return <div>{message}</div>
+  return <p className='font-semibold p-4 text-2xl'>{message}</p>
 }
 
 export default App
