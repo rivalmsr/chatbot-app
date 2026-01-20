@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import axios from 'axios';
-import ReactMarkDown from 'react-markdown';
 import { FaArrowUp } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
-import type { KeyboardEvent, ClipboardEvent } from 'react';
+import type { KeyboardEvent } from 'react';
 import { Button } from '../ui/button';
 import TypingIndicator from './TypingIndicator';
+import ChatMessages from './ChatMessages';
+import type { Message } from './ChatMessages';
 
 type FormData = {
   prompt: string;
@@ -15,22 +16,12 @@ type ChatResponse = {
   message: string;
 };
 
-type Message = {
-  content: string;
-  role: 'user' | 'bot';
-};
-
 function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isBotTyping, setIsBotTyping] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const conversationId = useRef(crypto.randomUUID());
-  const messageRef = useRef<HTMLDivElement | null>(null);
   const { register, handleSubmit, reset, formState } = useForm<FormData>();
-
-  useEffect(() => {
-    messageRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   const onSubmit = useCallback(
     async ({ prompt }: FormData) => {
@@ -72,31 +63,10 @@ function ChatBot() {
     [handleSubmit, onSubmit]
   );
 
-  const onCopy = useCallback((e: ClipboardEvent<HTMLParagraphElement>) => {
-    const selection = window.getSelection()?.toString().trim();
-    if (selection) {
-      e.preventDefault();
-      e.clipboardData.setData('text/plain', selection);
-    }
-  }, []);
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col flex-1 overflow-y-auto gap-2 mb-5">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            onCopy={onCopy}
-            ref={index === messages.length - 1 ? messageRef : null}
-            className={`px-3 py-2 rounded-3xl ${
-              message.role === 'user'
-                ? 'bg-blue-500 text-white self-end'
-                : 'bg-gray-100 text-black self-start'
-            }`}
-          >
-            <ReactMarkDown>{message.content}</ReactMarkDown>
-          </div>
-        ))}
+        <ChatMessages messages={messages} />
 
         {isBotTyping && <TypingIndicator />}
 
