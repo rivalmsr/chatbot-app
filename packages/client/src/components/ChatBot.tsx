@@ -22,6 +22,7 @@ type Message = {
 function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isBotTyping, setIsBotTyping] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
   const conversationId = useRef(crypto.randomUUID());
   const messageRef = useRef<HTMLDivElement | null>(null);
   const { register, handleSubmit, reset, formState } = useForm<FormData>();
@@ -32,23 +33,30 @@ function ChatBot() {
 
   const onSubmit = useCallback(
     async ({ prompt }: FormData) => {
-      setMessages((prevState) => [
-        ...prevState,
-        { content: prompt, role: 'user' },
-      ]);
-      setIsBotTyping(true);
+      try {
+        setMessages((prevState) => [
+          ...prevState,
+          { content: prompt, role: 'user' },
+        ]);
+        setIsBotTyping(true);
+        setError('');
 
-      reset({ prompt: '' });
+        reset({ prompt: '' });
 
-      const { data } = await axios.post<ChatResponse>('/api/chat', {
-        prompt,
-        conversationId: conversationId.current,
-      });
-      setMessages((prevState) => [
-        ...prevState,
-        { content: data.message, role: 'bot' },
-      ]);
-      setIsBotTyping(false);
+        const { data } = await axios.post<ChatResponse>('/api/chat', {
+          prompt,
+          conversationId: conversationId.current,
+        });
+        setMessages((prevState) => [
+          ...prevState,
+          { content: data.message, role: 'bot' },
+        ]);
+      } catch (error) {
+        console.error(error);
+        setError('Something went wrong, try again!');
+      } finally {
+        setIsBotTyping(false);
+      }
     },
     [reset]
   );
@@ -96,9 +104,10 @@ function ChatBot() {
             <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]" />
           </div>
         )}
+
+        {error && <p className="text-red-500">{error}</p>}
       </div>
       <form
-        // eslint-disable-next-line react-hooks/refs
         onSubmit={handleSubmit(onSubmit)}
         onKeyDown={onKeyDown}
         className="flex flex-col gap-2 items-end border-2 rounded-3xl p-4"
