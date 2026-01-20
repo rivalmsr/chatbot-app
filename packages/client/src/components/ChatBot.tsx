@@ -23,11 +23,11 @@ function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isBotTyping, setIsBotTyping] = useState<boolean>(false);
   const conversationId = useRef(crypto.randomUUID());
-  const formRef = useRef<HTMLFormElement | null>(null);
+  const messageRef = useRef<HTMLDivElement | null>(null);
   const { register, handleSubmit, reset, formState } = useForm<FormData>();
 
   useEffect(() => {
-    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messageRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const onSubmit = useCallback(
@@ -38,7 +38,7 @@ function ChatBot() {
       ]);
       setIsBotTyping(true);
 
-      reset();
+      reset({ prompt: '' });
 
       const { data } = await axios.post<ChatResponse>('/api/chat', {
         prompt,
@@ -72,12 +72,13 @@ function ChatBot() {
   }, []);
 
   return (
-    <div>
-      <div className="flex flex-col gap-2 mb-5">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col flex-1 overflow-y-auto gap-2 mb-5">
         {messages.map((message, index) => (
-          <p
+          <div
             key={index}
             onCopy={onCopy}
+            ref={index === messages.length - 1 ? messageRef : null}
             className={`px-3 py-2 rounded-3xl ${
               message.role === 'user'
                 ? 'bg-blue-500 text-white self-end'
@@ -85,7 +86,7 @@ function ChatBot() {
             }`}
           >
             <ReactMarkDown>{message.content}</ReactMarkDown>
-          </p>
+          </div>
         ))}
 
         {isBotTyping && (
@@ -100,7 +101,6 @@ function ChatBot() {
         // eslint-disable-next-line react-hooks/refs
         onSubmit={handleSubmit(onSubmit)}
         onKeyDown={onKeyDown}
-        ref={formRef}
         className="flex flex-col gap-2 items-end border-2 rounded-3xl p-4"
       >
         <textarea
@@ -108,6 +108,7 @@ function ChatBot() {
             required: true,
             validate: (data) => data.trim().length > 0,
           })}
+          autoFocus
           placeholder="Ask anything"
           className="w-full focus:outline-0 resize-none"
         />
