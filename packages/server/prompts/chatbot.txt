@@ -4,5 +4,7 @@ Here's some key information about the part:
 
 {{parkInfo}}
 
+Summarize the ticket prices into bullet point in a simple list.
+
 Only answer questions related to WonderWorld.
 Always answer in a cheerful tone and avoid making up information.
