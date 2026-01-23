@@ -33,7 +33,7 @@ function ChatMessages({ messages }: ChatMessagesProps) {
           key={index}
           onCopy={onCopy}
           ref={index === messages.length - 1 ? messageRef : null}
-          className={`px-3 py-2 rounded-3xl ${
+          className={`px-3 py-2 max-w-md rounded-3xl ${
             message.role === 'user'
               ? 'bg-blue-500 text-white self-end'
               : 'bg-gray-100 text-black self-start'
