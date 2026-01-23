@@ -13,11 +13,17 @@ type ChatResponse = {
   message: string;
 };
 
+const currentTime = new Date().toLocaleString('en-GB', {
+  timeZone: 'Asia/Jakarta',
+  hour12: false,
+});
 const parkInfo = fs.readFileSync(
   path.join(__dirname, '..', 'prompts', 'WonderWorld.md'),
   'utf-8'
 );
-const instructions = template.replace('{{parkInfo}}', parkInfo);
+const instructions = template
+  .replace('{{currentTime}}', currentTime)
+  .replace('{{parkInfo}}', parkInfo);
 
 export const chatService = {
   async sendMessage(
@@ -29,7 +35,7 @@ export const chatService = {
       instructions,
       input: prompt,
       temperature: 0.2,
-      max_output_tokens: 200,
+      max_output_tokens: 250,
       previous_response_id:
         conversationRepository.getLastConversationId(conversationId),
     });
