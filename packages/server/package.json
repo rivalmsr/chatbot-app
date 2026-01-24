@@ -8,13 +8,17 @@
     "dev": "bun --watch run index.ts"
   },
   "devDependencies": {
+    "@prisma/adapter-mariadb": "^7.3.0",
     "@types/bun": "latest",
-    "@types/express": "^5.0.6"
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.10",
+    "prisma": "^7.3.0"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@prisma/client": "^7.3.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "openai": "^6.16.0",
