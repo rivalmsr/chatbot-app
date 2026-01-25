@@ -1,0 +1,3 @@
+Summarize the following customer reviews into a short paragraph lighlighting key themes, both positif and negative:
+
+{{reviews}}
