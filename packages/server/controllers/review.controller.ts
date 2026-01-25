@@ -13,7 +13,24 @@ export const reviewController = {
     try {
       const reviews = await reviewService.getReviews(productId);
 
-      res.json(reviews);
+      res.json({ reviews });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to get reviews.' });
+    }
+  },
+
+  async summarizeReviews(req: Request, res: Response) {
+    const productId = Number(req.params.id);
+
+    if (isNaN(productId)) {
+      res.status(400).json({ message: 'Invalid product ID.' });
+      return;
+    }
+
+    try {
+      const summary = await reviewService.summarizeReviews(productId);
+
+      res.json({ summary });
     } catch (error) {
       res.status(500).json({ message: 'Failed to get reviews.' });
     }
