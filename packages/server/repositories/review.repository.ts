@@ -18,13 +18,13 @@ export const reviewRepository = {
     });
   },
 
-  async storeReviewSummary(productId: number, summary: string) {
+  storeReviewSummary(productId: number, summary: string) {
     const generatedAt = new Date();
     const expiresAt = dayjs().add(7, 'days').toDate();
 
     const data = { content: summary, generatedAt, expiresAt, productId };
 
-    return await prisma.summary.upsert({
+    return prisma.summary.upsert({
       where: { productId },
       create: data,
       update: data,
