@@ -1,5 +1,6 @@
 import type { Review } from '../generated/prisma/client';
 import { prisma } from '../lib/prisma';
+import dayjs from 'dayjs';
 
 type QueryOptions = {
   limit?: number;
@@ -14,6 +15,19 @@ export const reviewRepository = {
       where: { productId },
       orderBy: { createdAt: 'desc' },
       take: queryOptions?.limit,
+    });
+  },
+
+  async storeReviewSummary(productId: number, summary: string) {
+    const generatedAt = new Date();
+    const expiresAt = dayjs().add(7, 'days').toDate();
+
+    const data = { content: summary, generatedAt, expiresAt, productId };
+
+    return await prisma.summary.upsert({
+      where: { productId },
+      create: data,
+      update: data,
     });
   },
 };
