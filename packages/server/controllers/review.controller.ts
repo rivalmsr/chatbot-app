@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 import { reviewService } from '../services/review.service';
 import { productRepository } from '../repositories/product.repository';
-import { error } from 'node:console';
 import { reviewRepository } from '../repositories/review.repository';
 
 export const reviewController = {
@@ -13,10 +12,17 @@ export const reviewController = {
       return;
     }
 
+    const product = await productRepository.getProduct(productId);
+    if (!product) {
+      res.status(404).json({ error: 'Product does not exist.' });
+      return;
+    }
+
     try {
       const reviews = await reviewService.getReviews(productId);
+      const summary = await reviewRepository.getReviewSummary(productId);
 
-      res.json({ reviews });
+      res.json({ summary, reviews });
     } catch (error) {
       res.status(500).json({ error: 'Failed to get reviews.' });
     }
@@ -32,7 +38,7 @@ export const reviewController = {
 
     const product = await productRepository.getProduct(productId);
     if (!product) {
-      res.status(400).json({ error: 'Invalid product ID.' });
+      res.status(404).json({ error: 'Product does not exist.' });
       return;
     }
 

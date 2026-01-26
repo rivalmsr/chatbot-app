@@ -18,22 +18,27 @@ export const reviewRepository = {
     });
   },
 
-  storeReviewSummary(productId: number, summary: string): Promise<Summary> {
+  async storeReviewSummary(
+    productId: number,
+    summary: string
+  ): Promise<Summary> {
     const generatedAt = new Date();
     const expiresAt = dayjs().add(7, 'days').toDate();
 
     const data = { content: summary, generatedAt, expiresAt, productId };
 
-    return prisma.summary.upsert({
+    return await prisma.summary.upsert({
       where: { productId },
       create: data,
       update: data,
     });
   },
 
-  async getReviewSummary(productId: number): Promise<Summary | null> {
-    return await prisma.summary.findUnique({
-      where: { productId },
+  async getReviewSummary(productId: number): Promise<string | null> {
+    const summary = await prisma.summary.findFirst({
+      where: { AND: [{ id: productId }, { expiresAt: { gt: new Date() } }] },
     });
+
+    return summary ? summary.content : null;
   },
 };
