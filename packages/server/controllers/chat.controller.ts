@@ -18,7 +18,7 @@ export const chatController = {
     const parseResult = chatSchema.safeParse(req.body);
 
     if (!parseResult.success) {
-      res.status(400).json({ message: parseResult.error.format() });
+      res.status(400).json({ error: parseResult.error.format() });
       return;
     }
 
@@ -28,7 +28,7 @@ export const chatController = {
 
       res.json({ message: response.message });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to generate a response.' });
+      res.status(500).json({ error: 'Failed to generate a response.' });
     }
   },
 };

@@ -1,12 +1,15 @@
 import type { Request, Response } from 'express';
 import { reviewService } from '../services/review.service';
+import { productRepository } from '../repositories/product.repository';
+import { error } from 'node:console';
+import { reviewRepository } from '../repositories/review.repository';
 
 export const reviewController = {
   async getReviews(req: Request, res: Response) {
     const productId = Number(req.params.id);
 
     if (isNaN(productId)) {
-      res.status(400).json({ message: 'Invalid product ID.' });
+      res.status(400).json({ error: 'Invalid product ID.' });
       return;
     }
 
@@ -15,7 +18,7 @@ export const reviewController = {
 
       res.json({ reviews });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get reviews.' });
+      res.status(500).json({ error: 'Failed to get reviews.' });
     }
   },
 
@@ -23,8 +26,19 @@ export const reviewController = {
     const productId = Number(req.params.id);
 
     if (isNaN(productId)) {
-      res.status(400).json({ message: 'Invalid product ID.' });
+      res.status(400).json({ error: 'Invalid product ID.' });
       return;
+    }
+
+    const product = await productRepository.getProduct(productId);
+    if (!product) {
+      res.status(400).json({ error: 'Invalid product ID.' });
+      return;
+    }
+
+    const reviews = await reviewRepository.getReviews(productId, { limit: 1 });
+    if (!reviews.length) {
+      res.status(400).json({ error: 'There are no reviews to summarize.' });
     }
 
     try {
@@ -32,7 +46,7 @@ export const reviewController = {
 
       res.json({ summary });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get reviews.' });
+      res.status(500).json({ error: 'Failed to get reviews.' });
     }
   },
 };
