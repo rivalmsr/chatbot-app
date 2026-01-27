@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { useCallback, useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import StarRating from './StarRating';
+import { useQuery } from '@tanstack/react-query';
 
 type Review = {
   id: string;
@@ -21,31 +21,15 @@ type ReviewListProps = {
 };
 
 function ReviewList({ productId }: ReviewListProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const fetchReviews = (): Promise<GetReviewsResponse> =>
+    axios
+      .get<GetReviewsResponse>(`/api/products/${productId}/reviews`)
+      .then((res) => res.data);
 
-  const fetchReviews = useCallback(async () => {
-    if (!productId) return;
-    setIsLoading(true);
-
-    try {
-      const { data } = await axios.get<GetReviewsResponse>(
-        `/api/products/${productId}/reviewsx`
-      );
-      setReviews(data.reviews);
-    } catch (error) {
-      console.log(error);
-      setError('Could not fetch the reviews. Try again!');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [productId]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchReviews();
-  }, [fetchReviews]);
+  const { data, isLoading, error } = useQuery<GetReviewsResponse>({
+    queryKey: ['reviews', productId],
+    queryFn: fetchReviews,
+  });
 
   if (isLoading) {
     return (
@@ -64,18 +48,21 @@ function ReviewList({ productId }: ReviewListProps) {
   }
 
   if (error) {
-    return <p className="text-red-500">{error}</p>;
+    return (
+      <p className="text-red-500">Could not fetch the reviews. Try again!</p>
+    );
   }
 
   return (
     <div className="flex flex-col gap-5">
-      {reviews.map((review) => (
-        <div key={review.id}>
-          <div className="font-semibold">{review.author}</div>
-          <StarRating value={review.rating} />
-          <p className="py-2">{review.content}</p>
-        </div>
-      ))}
+      {data &&
+        data.reviews.map((review) => (
+          <div key={review.id}>
+            <div className="font-semibold">{review.author}</div>
+            <StarRating value={review.rating} />
+            <p className="py-2">{review.content}</p>
+          </div>
+        ))}
     </div>
   );
 }

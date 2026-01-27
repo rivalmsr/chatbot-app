@@ -9,7 +9,9 @@ function StarRating({ value }: StarRatingProps) {
 
   return (
     <div className="flex gap-1 text-yellow-500">
-      {placeholder.map((p) => (p <= value ? <FaStar /> : <FaRegStar />))}
+      {placeholder.map((p) =>
+        p <= value ? <FaStar key={p} /> : <FaRegStar key={p} />
+      )}
     </div>
   );
 }
