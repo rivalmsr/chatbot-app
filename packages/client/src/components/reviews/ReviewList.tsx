@@ -1,4 +1,3 @@
-import axios from 'axios';
 import StarRating from './StarRating';
 import { HiSparkles } from 'react-icons/hi2';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -6,46 +5,21 @@ import { Button } from '../ui/button';
 import { useMemo } from 'react';
 import ReviewsSkeleton from './ReviewsSkeleton';
 import SummarySkeleton from './SummarySkeleton';
-
-type Review = {
-  id: string;
-  author: string;
-  rating: number;
-  content: string;
-  productId: number;
-};
-
-type GetReviewsResponse = {
-  summary: string;
-  reviews: Review[];
-};
-
-type SummarizeResponse = {
-  summary: string;
-};
+import reviewsApi from './reviewsApi';
+import type { GetReviewsResponse, SummarizeResponse } from './reviewsApi';
 
 type ReviewListProps = {
   productId: number;
 };
 
 function ReviewList({ productId }: ReviewListProps) {
-  const fetchReviews = (): Promise<GetReviewsResponse> =>
-    axios
-      .get<GetReviewsResponse>(`/api/products/${productId}/reviews`)
-      .then((res) => res.data);
-
   const reviewsQuery = useQuery<GetReviewsResponse>({
     queryKey: ['reviews', productId],
-    queryFn: fetchReviews,
+    queryFn: () => reviewsApi.fetchReviews(productId),
   });
 
-  const summarizeReviews = (): Promise<SummarizeResponse> =>
-    axios
-      .post<SummarizeResponse>(`/api/products/${productId}/reviews/summarize`)
-      .then((res) => res.data);
-
   const summaryMutation = useMutation<SummarizeResponse>({
-    mutationFn: summarizeReviews,
+    mutationFn: () => reviewsApi.summarizeReviews(productId),
   });
 
   const currentSummary = useMemo(
