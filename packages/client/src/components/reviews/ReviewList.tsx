@@ -31,6 +31,7 @@ type ReviewListProps = {
 function ReviewList({ productId }: ReviewListProps) {
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   const fetchReviews = (): Promise<GetReviewsResponse> =>
     axios
@@ -44,13 +45,20 @@ function ReviewList({ productId }: ReviewListProps) {
 
   const onSummarize = useCallback(async () => {
     setIsSummaryLoading(true);
+    setSummaryError(null);
 
-    const response = await axios.post<SummarizeResponse>(
-      `/api/products/${productId}/reviews/summarize`
-    );
+    try {
+      const response = await axios.post<SummarizeResponse>(
+        `/api/products/${productId}/reviews/summarize`
+      );
 
-    setSummary(response.data.summary);
-    setIsSummaryLoading(false);
+      setSummary(response.data.summary);
+    } catch (error) {
+      console.log(error);
+      setSummaryError('Could not summarize the reviews. Try again!');
+    } finally {
+      setIsSummaryLoading(false);
+    }
   }, [productId]);
 
   const currentSummary = useMemo(
@@ -88,7 +96,10 @@ function ReviewList({ productId }: ReviewListProps) {
               Summarize
             </Button>
 
-            {isSummaryLoading && <SummarySkeleton className="pt-2" />}
+            <div className="pt-2">
+              {isSummaryLoading && <SummarySkeleton />}
+              {summaryError && <p className="text-red-500">{summaryError}</p>}
+            </div>
           </div>
         )}
       </div>
