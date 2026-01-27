@@ -1,7 +1,11 @@
 import axios from 'axios';
-import Skeleton from 'react-loading-skeleton';
 import StarRating from './StarRating';
+import { HiSparkles } from 'react-icons/hi2';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '../ui/button';
+import { useCallback, useMemo, useState } from 'react';
+import ReviewsSkeleton from './ReviewsSkeleton';
+import SummarySkeleton from './SummarySkeleton';
 
 type Review = {
   id: string;
@@ -16,11 +20,18 @@ type GetReviewsResponse = {
   reviews: Review[];
 };
 
+type SummarizeResponse = {
+  summary: string;
+};
+
 type ReviewListProps = {
   productId: number;
 };
 
 function ReviewList({ productId }: ReviewListProps) {
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(false);
+
   const fetchReviews = (): Promise<GetReviewsResponse> =>
     axios
       .get<GetReviewsResponse>(`/api/products/${productId}/reviews`)
@@ -31,20 +42,24 @@ function ReviewList({ productId }: ReviewListProps) {
     queryFn: fetchReviews,
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-5">
-        {[1, 2, 3].map((i) => (
-          <div key={i}>
-            <Skeleton width={150} />
-            <Skeleton width={100} />
-            <div className="py-1">
-              <Skeleton count={2} />
-            </div>
-          </div>
-        ))}
-      </div>
+  const onSummarize = useCallback(async () => {
+    setIsSummaryLoading(true);
+
+    const response = await axios.post<SummarizeResponse>(
+      `/api/products/${productId}/reviews/summarize`
     );
+
+    setSummary(response.data.summary);
+    setIsSummaryLoading(false);
+  }, [productId]);
+
+  const currentSummary = useMemo(
+    () => data?.summary || summary,
+    [data, summary]
+  );
+
+  if (isLoading) {
+    return <ReviewsSkeleton />;
   }
 
   if (error) {
@@ -53,16 +68,40 @@ function ReviewList({ productId }: ReviewListProps) {
     );
   }
 
+  if (!data || !data.reviews.length) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col gap-5">
-      {data &&
-        data.reviews.map((review) => (
+    <div>
+      <div className="mb-5">
+        {currentSummary ? (
+          <p>{currentSummary}</p>
+        ) : (
+          <div>
+            <Button
+              onClick={onSummarize}
+              disabled={isSummaryLoading}
+              className="cursor-pointer"
+            >
+              <HiSparkles />
+              Summarize
+            </Button>
+
+            {isSummaryLoading && <SummarySkeleton className="pt-2" />}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-5">
+        {data.reviews.map((review) => (
           <div key={review.id}>
             <div className="font-semibold">{review.author}</div>
             <StarRating value={review.rating} />
             <p className="py-2">{review.content}</p>
           </div>
         ))}
+      </div>
     </div>
   );
 }

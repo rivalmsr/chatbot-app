@@ -36,7 +36,7 @@ export const reviewRepository = {
 
   async getReviewSummary(productId: number): Promise<string | null> {
     const summary = await prisma.summary.findFirst({
-      where: { AND: [{ id: productId }, { expiresAt: { gt: new Date() } }] },
+      where: { AND: [{ productId }, { expiresAt: { gt: new Date() } }] },
     });
 
     return summary ? summary.content : null;
