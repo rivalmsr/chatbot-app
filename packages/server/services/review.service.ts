@@ -1,7 +1,6 @@
 import type { Review } from '../generated/prisma/client';
 import { reviewRepository } from '../repositories/review.repository';
 import { llmClient } from '../llm/client';
-import template from '../prompts/summarize-reviews.txt';
 
 export const reviewService = {
   async getReviews(productId: number): Promise<Review[]> {
@@ -16,14 +15,21 @@ export const reviewService = {
 
     const reviews = await reviewRepository.getReviews(productId, { limit: 10 });
     const joinedReviews = reviews.map((r) => r.content).join('\n\n');
-    const prompt = template.replace('{{reviews}}', joinedReviews);
 
-    const { text: summary } = await llmClient.generateText({
-      model: 'gpt-4.1',
-      prompt,
-      temperature: 0.2,
-      maxOutputTokens: 500,
-    });
+    // summarize using open-source meta-llama/Llama-3.1-8B-Instruct:novita model
+    const summary = await llmClient.summarizeReviews(joinedReviews);
+
+    // summarize using open-source facebook/bart-large-cnn model
+    // const summary = await llmClient.summarize(joinedReviews);
+
+    // summarize using open ai model
+    //const prompt = template.replace('{{reviews}}', joinedReviews);
+    // const { text: summary } = await llmClient.generateText({
+    //   model: 'gpt-4.1',
+    //   prompt,
+    //   temperature: 0.2,
+    //   maxOutputTokens: 500,
+    // });
 
     await reviewRepository.storeReviewSummary(productId, summary);
 
